@@ -12,7 +12,6 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 
 public class EqualsPlugin extends Plugin {
-    private final ResourceBundle resourceBundle = ResourceBundle.getBundle(EqualsPlugin.class.getCanonicalName());
 
     @Override
     public String getOptionName() {
@@ -22,7 +21,7 @@ public class EqualsPlugin extends Plugin {
     @Override
     public String getUsage() {
         final String n = System.getProperty("line.separator", "\n");
-        return "-" + getOptionName() + " :  " + MessageFormat.format(resourceBundle.getString("usage"), "") + n;
+        return "-" + getOptionName() + " :  generate hashcode and equals for model files."+ n;
     }
 
     @Override
