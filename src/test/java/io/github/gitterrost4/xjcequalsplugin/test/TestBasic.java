@@ -1,6 +1,6 @@
-package com.github.gitterrost4.xjcequalsplugin.test;
+package io.github.gitterrost4.xjcequalsplugin.test;
 
-import com.github.gitterrost4.xjcequalsplugin.test.basic.Model;
+import io.github.gitterrost4.xjcequalsplugin.test.basic.Model;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Unmarshaller;
 import org.junit.Assert;

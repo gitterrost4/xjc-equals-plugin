@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.github.gitterrost4</groupId>
+    <groupId>io.github.gitterrost4</groupId>
     <artifactId>xjc-equals-plugin</artifactId>
     <version>0-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -156,7 +156,7 @@
                             <configuration>
                                 <artifacts>
                                     <artifact>
-                                        <file>${basedir}/LICENSE.txt</file>
+                                        <file>${basedir}/LICENSE</file>
                                         <classifier>license</classifier>
                                         <type>txt</type>
                                     </artifact>
@@ -296,7 +296,7 @@
     </profiles>
 
     <name>XJC-EQUALS-PLUGIN</name>
-    <description>JAXB 2.0 plugin that creates hashcode and equals methods for the generated models.</description>
+    <description>JAXB 3.x/2.x plugin that creates hashcode and equals methods for the generated models.</description>
     <url>https://github.com/gitterrost4/xjc-equals-plugin</url>
     <inceptionYear>2023</inceptionYear>
 

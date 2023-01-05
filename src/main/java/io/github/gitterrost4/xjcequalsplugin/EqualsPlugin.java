@@ -1,4 +1,4 @@
-package com.github.gitterrost4.xjcequalsplugin;
+package io.github.gitterrost4.xjcequalsplugin;
 
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
