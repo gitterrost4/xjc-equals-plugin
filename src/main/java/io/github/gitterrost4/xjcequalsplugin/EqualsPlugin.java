@@ -7,6 +7,7 @@ import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 
+import java.lang.reflect.Modifier;
 import java.text.MessageFormat;
 import java.util.Objects;
 import java.util.ResourceBundle;
@@ -45,6 +46,7 @@ public class EqualsPlugin extends Plugin {
 
             //generate equals
             JMethod equalsMethod = implClass.method(JMod.PUBLIC, codeModel.BOOLEAN, "equals");
+            equalsMethod.annotate(SuppressWarnings.class).param("value", "all");
             equalsMethod.param(codeModel.ref(Object.class), "o");
             JBlock equalsBody = equalsMethod.body();
             equalsBody._if(JExpr._this().eq(JExpr.ref("o")))._then()._return(JExpr.lit(true));
@@ -57,10 +59,12 @@ public class EqualsPlugin extends Plugin {
 
             JExpression expr = JExpr.lit(true);
             for(JFieldVar field: implClass.fields().values()){
-                JInvocation equalsInvocation = codeModel.ref(Objects.class).staticInvoke("equals");
-                equalsInvocation.arg(JExpr.ref(field.name()));
-                equalsInvocation.arg(JExpr.ref("that").ref(field));
-                expr = equalsInvocation.cand(expr);
+                if((field.mods().getValue() & JMod.STATIC) == 0) {
+                    JInvocation equalsInvocation = codeModel.ref(Objects.class).staticInvoke("equals");
+                    equalsInvocation.arg(JExpr.ref(field.name()));
+                    equalsInvocation.arg(JExpr.ref("that").ref(field));
+                    expr = equalsInvocation.cand(expr);
+                }
             }
             equalsBody._return(expr);
 
