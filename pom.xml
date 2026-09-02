@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.gitterrost4</groupId>
     <artifactId>xjc-equals-plugin</artifactId>
-    <version>0.3</version>
+    <version>0.3-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -109,7 +109,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
-                    <version>3.2.1</version>
+                    <version>3.3.1</version>
                     <configuration>
                         <archive>
                             <index>true</index>
@@ -121,6 +121,28 @@
                             </manifestEntries>
                         </archive>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.12.0</version>
+                    <configuration>
+                        <source>8</source>
+                        <archive>
+                            <index>true</index>
+                            <addMavenDescriptor>false</addMavenDescriptor>
+                            <compress>true</compress>
+                            <manifestEntries>
+                                <Build-Date>${buildNumber}</Build-Date>
+                                <Maven-Version>${maven.version}</Maven-Version>
+                            </manifestEntries>
+                        </archive>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonatype.central</groupId>
+                    <artifactId>central-publishing-maven-plugin</artifactId>
+                    <version>0.11.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -168,7 +190,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>2.5.3</version>
+                    <version>3.3.1</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -177,33 +199,73 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
             </plugin>
+            <!-- Sources and javadoc are mandatory on Maven Central. Attach them explicitly rather
+                 than relying on the super POM's `release-profile`, which is slated for removal. The
+                 execution ids match that profile's, so the two merge instead of double-attaching. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Replaces distributionManagement + nexus-staging: OSSRH was shut down 2025-06-30 and
+                 uploads now go to the Central Publisher Portal. -->
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                    <autoPublish>false</autoPublish>
+                    <waitUntil>validated</waitUntil>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
-                    <arguments>-Dgpg.passphrase=${gpg.passphrase}</arguments>
+                    <tagNameFormat>@{project.artifactId}-@{project.version}</tagNameFormat>
+                    <!-- Deprecated super POM profile; we attach sources/javadoc ourselves above. -->
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release-sign-artifacts</releaseProfiles>
                 </configuration>
             </plugin>
         </plugins>
     </build>
 
     <profiles>
+        <!-- Activated by maven-release-plugin's releaseProfiles during release:perform. -->
         <profile>
             <id>release-sign-artifacts</id>
-            <activation>
-                <property>
-                    <name>performRelease</name>
-                    <value>true</value>
-                </property>
-            </activation>
             <build>
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.0.1</version>
+                        <version>3.2.8</version>
                         <configuration>
-                            <passphrase>${gpg.passphrase}</passphrase>
+                            <!-- The passphrase comes from gpg-agent or MAVEN_GPG_PASSPHRASE; it is
+                                 deliberately not configured here. bestPractices makes that an error
+                                 rather than a silent leak. -->
+                            <bestPractices>true</bestPractices>
                         </configuration>
                         <executions>
                             <execution>
@@ -329,16 +391,6 @@
         <tag>HEAD</tag>
     </scm>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <name>Sonatype Nexus snapshot repository</name>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <name>Sonatype Nexus release repository</name>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
+    <!-- No distributionManagement: central-publishing-maven-plugin (see build/plugins) handles the
+         upload to the Central Publisher Portal. -->
 </project>
