@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.gitterrost4</groupId>
     <artifactId>xjc-equals-plugin</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.3</version>
     <packaging>jar</packaging>
 
     <properties>
