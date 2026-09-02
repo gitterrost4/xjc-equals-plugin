@@ -9,6 +9,7 @@ import org.xml.sax.ErrorHandler;
 
 import java.lang.reflect.Modifier;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
@@ -40,7 +41,7 @@ public class EqualsPlugin extends Plugin {
                 invocation.arg(JExpr._super().invoke("hashCode"));
             }
             for(JFieldVar field: implClass.fields().values()){
-                invocation.arg(JExpr.ref(field.name()));
+                invocation.arg(hashOf(codeModel, field));
             }
             hashCodeBody._return(invocation);
 
@@ -60,10 +61,7 @@ public class EqualsPlugin extends Plugin {
             JExpression expr = JExpr.lit(true);
             for(JFieldVar field: implClass.fields().values()){
                 if((field.mods().getValue() & JMod.STATIC) == 0) {
-                    JInvocation equalsInvocation = codeModel.ref(Objects.class).staticInvoke("equals");
-                    equalsInvocation.arg(JExpr.ref(field.name()));
-                    equalsInvocation.arg(JExpr.ref("that").ref(field));
-                    expr = equalsInvocation.cand(expr);
+                    expr = equalsOf(codeModel, field).cand(expr);
                 }
             }
             equalsBody._return(expr);
@@ -71,5 +69,37 @@ public class EqualsPlugin extends Plugin {
 
         }
         return true;
+    }
+
+    /**
+     * the expression contributing one field to hashCode()
+     *
+     * Objects.hash() would hash an array by its identity, so arrays are hashed by their content instead.
+     */
+    private JExpression hashOf(JCodeModel codeModel, JFieldVar field) {
+        if(!field.type().isArray()) {
+            return JExpr.ref(field.name());
+        }
+        //deepHashCode() also covers arrays of arrays, but only takes an Object[]
+        String method = field.type().elementType().isPrimitive() ? "hashCode" : "deepHashCode";
+        return codeModel.ref(Arrays.class).staticInvoke(method).arg(JExpr.ref(field.name()));
+    }
+
+    /**
+     * the expression comparing one field in equals()
+     *
+     * Objects.equals() would compare two arrays by their identity, so arrays are compared by their content
+     * instead, see hashOf().
+     */
+    private JInvocation equalsOf(JCodeModel codeModel, JFieldVar field) {
+        JInvocation invocation;
+        if(!field.type().isArray()) {
+            invocation = codeModel.ref(Objects.class).staticInvoke("equals");
+        } else if(field.type().elementType().isPrimitive()) {
+            invocation = codeModel.ref(Arrays.class).staticInvoke("equals");
+        } else {
+            invocation = codeModel.ref(Arrays.class).staticInvoke("deepEquals");
+        }
+        return invocation.arg(JExpr.ref(field.name())).arg(JExpr.ref("that").ref(field));
     }
 }
