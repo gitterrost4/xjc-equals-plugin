@@ -247,6 +247,7 @@
 								<configuration>
 									<specVersion>3.0.1</specVersion>
 									<schemaDirectory>src/test/xsd</schemaDirectory>
+									<bindingDirectory>src/test/xjb</bindingDirectory>
 									<generatePackage>${project.groupId}.xjcequalsplugin.test.basic</generatePackage>
 									<generateDirectory>target/generated-test-sources/xjc</generateDirectory>
 									<addTestCompileSourceRoot>true</addTestCompileSourceRoot>

@@ -41,7 +41,9 @@ public class EqualsPlugin extends Plugin {
                 invocation.arg(JExpr._super().invoke("hashCode"));
             }
             for(JFieldVar field: implClass.fields().values()){
-                invocation.arg(hashOf(codeModel, field));
+                if(isRelevant(field)) {
+                    invocation.arg(hashOf(codeModel, field));
+                }
             }
             hashCodeBody._return(invocation);
 
@@ -60,7 +62,7 @@ public class EqualsPlugin extends Plugin {
 
             JExpression expr = JExpr.lit(true);
             for(JFieldVar field: implClass.fields().values()){
-                if((field.mods().getValue() & JMod.STATIC) == 0) {
+                if(isRelevant(field)) {
                     expr = equalsOf(codeModel, field).cand(expr);
                 }
             }
@@ -69,6 +71,16 @@ public class EqualsPlugin extends Plugin {
 
         }
         return true;
+    }
+
+    /**
+     * whether a field takes part in hashCode() and equals()
+     *
+     * Static fields do not: they are the same for every instance and say nothing about it. Note that the
+     * modifiers are JMod values, which are not the ones of java.lang.reflect.Modifier.
+     */
+    private boolean isRelevant(JFieldVar field) {
+        return (field.mods().getValue() & JMod.STATIC) == 0;
     }
 
     /**
